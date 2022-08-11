@@ -1,0 +1,43 @@
+Parameters: 
+  AMI:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0cff7528ff583bf9a
+  Key:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ec2
+
+Resources:
+  Ec2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      KeyName: !Ref Key
+      ImageId: !Ref AMI
+      InstanceType: t2.micro
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y 
+          yum install -y httpd
+          systemctl start httpd 
+          systemctl enable httpd
+          echo "<h1>Hola mundo $(hostname -f)</h1>" > /var/www/html/index.html
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable SSH access via port 22 and 80
+      
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+
+     
